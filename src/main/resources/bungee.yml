@@ -1,4 +1,4 @@
 name: KickInfo
 main: de.themoep.KickInfo.bungee.KickInfo
-version: 1.0
+version: '${minecraft.plugin.version}'
 author: Phoenix616
