@@ -28,8 +28,8 @@ public class KickInfo extends Plugin implements Listener {
         boolean onDefaultServer = event.getKickedFrom().getName().equals(event.getPlayer().getPendingConnection().getListener().getDefaultServer());
         boolean onFallbackServer = event.getKickedFrom().getName().equals(event.getPlayer().getPendingConnection().getListener().getFallbackServer());
         int serverVersion = event.getKickedFrom().getPlayers().size() > 0 ? new ArrayList<ProxiedPlayer>(event.getKickedFrom().getPlayers()).get(0).getPendingConnection().getVersion() : 0;
-        int cancelServerVersion = event.getCancelServer().getPlayers().size() > 0 ? new ArrayList<ProxiedPlayer>(event.getCancelServer().getPlayers()).get(0).getPendingConnection().getVersion() : 0;
-        if((onDefaultServer || onFallbackServer) && cancelServerVersion == event.getPlayer().getPendingConnection().getVersion()) {
+        int cancelServerVersion = event.getCancelServer() != null && event.getCancelServer().getPlayers().size() > 0 ? new ArrayList<ProxiedPlayer>(event.getCancelServer().getPlayers()).get(0).getPendingConnection().getVersion() : 0;
+        if(event.getCancelServer() == null || (onDefaultServer || onFallbackServer) && cancelServerVersion == event.getPlayer().getPendingConnection().getVersion()) {
             event.getPlayer().disconnect(event.getKickReasonComponent());
             msg = " from proxy";
         } else if(serverVersion == event.getPlayer().getPendingConnection().getVersion()){
