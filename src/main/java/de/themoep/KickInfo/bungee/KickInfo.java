@@ -1,6 +1,5 @@
 package de.themoep.KickInfo.bungee;
 
-import net.md_5.bungee.BungeeTitle;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.Title;
 import net.md_5.bungee.api.chat.ComponentBuilder;
@@ -30,7 +29,7 @@ public class KickInfo extends Plugin implements Listener {
             msg = " from proxy";
         } else {
             event.getPlayer().sendMessage(ChatColor.GOLD + "Du wurdest von " + event.getKickedFrom().getName() + " gekickt! Grund: " + event.getKickReason());
-            Title title = new BungeeTitle();
+            Title title = getProxy().createTitle();
             title.title(TextComponent.fromLegacyText(ChatColor.GOLD + "Auf Lobby gekickt!"));
             title.subTitle(new ComponentBuilder("Grund: ").color(ChatColor.RED).append(event.getKickReason()).color(ChatColor.YELLOW).create());
             title.fadeIn(20).stay(100).fadeOut(20);
