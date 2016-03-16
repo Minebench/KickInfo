@@ -13,9 +13,9 @@ import java.util.List;
 import java.util.logging.Level;
 
 /**
- * Nietzsche Public License v0.6
+ * KickInfo is licensed under the Nietzsche Public License v0.6
  *
- * Copyright 2016 Phoenix616
+ * Copyright 2016 Max Lee (https://github.com/Phoenix616/)
  *
  * Copyright, like God, is dead.  Let its corpse serve only to guard against its
  * resurrection.  You may do anything with this work that copyright law would
