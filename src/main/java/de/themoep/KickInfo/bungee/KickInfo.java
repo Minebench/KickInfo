@@ -3,6 +3,8 @@ package de.themoep.KickInfo.bungee;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.Title;
 import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.config.ListenerInfo;
+import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.event.ServerKickEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.api.plugin.Plugin;
@@ -22,13 +24,24 @@ public class KickInfo extends Plugin implements Listener {
 
     @EventHandler
     public void onServerKick(ServerKickEvent event) {
+        getLogger().log(Level.INFO, "Kicked " + event.getPlayer().getName() + " from " + event.getKickedFrom().getName() + ": " + event.getKickReason());
         if(event.getKickReason().toLowerCase().startsWith("outdated")) {
+            ListenerInfo l = event.getPlayer().getPendingConnection().getListener();
+            if(l.getServerPriority().size() <= 1) {
+                return;
+            }
+            int i = l.getServerPriority().indexOf(event.getKickedFrom().getName());
+            if(i != -1 && l.getServerPriority().size() > i + 1) {
+                ServerInfo s = getProxy().getServerInfo(l.getServerPriority().get(i + 1));
+                event.setCancelServer(s);
+                event.setCancelled(true);
+            }
             return;
         }
         String msg;
         if(event.getPlayer().getPendingConnection().getListener().getServerPriority().contains(event.getKickedFrom().getName())) {
             event.getPlayer().disconnect(event.getKickReasonComponent());
-            msg = " from proxy";
+            msg = "From proxy";
         } else {
             event.getPlayer().sendMessage(ChatColor.GOLD + "Du wurdest von " + event.getKickedFrom().getName() + " gekickt! Grund: " + event.getKickReason());
             Title title = getProxy().createTitle();
@@ -36,8 +49,8 @@ public class KickInfo extends Plugin implements Listener {
             title.subTitle(new ComponentBuilder("Grund: ").color(ChatColor.RED).append(event.getKickReason()).color(ChatColor.YELLOW).create());
             title.fadeIn(20).stay(100).fadeOut(20);
             event.getPlayer().sendTitle(title);
-            msg = " to fallback server";
+            msg = "To fallback server";
         }
-        getLogger().log(Level.INFO, "Kicked " + event.getPlayer().getName() + " from " + event.getKickedFrom().getName() + msg + ": " + event.getKickReason());
+        getLogger().log(Level.INFO, msg);
     }
 }
