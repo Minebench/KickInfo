@@ -36,7 +36,13 @@ public class KickInfo extends Plugin implements Listener {
         } else if(priority.indexOf(event.getKickedFrom().getName()) == priority.size() - 1) {
             event.getPlayer().disconnect(event.getKickReasonComponent());
         } else {
-            getLogger().log(Level.INFO, "To another fallback server");
+            int i = priority.indexOf(event.getKickedFrom().getName());
+            try {
+                event.setCancelServer(getProxy().getServerInfo(priority.get(i + 1)));
+                getLogger().log(Level.INFO, "To another fallback server (" + event.getCancelServer().getName() + ")");
+            } catch(IndexOutOfBoundsException e) {
+                event.getPlayer().disconnect(event.getKickReasonComponent());
+            }
         }
     }
 }
