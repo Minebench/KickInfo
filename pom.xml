@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>de.themoep</groupId>
     <artifactId>kickinfo</artifactId>
-    <version>1.1-SNAPSHOT</version>
+    <version>1.2-SNAPSHOT</version>
     <name>KickInfo</name>
 
     <properties>
@@ -19,13 +19,24 @@
             <id>bungee-repo</id>
             <url>https://oss.sonatype.org/content/repositories/snapshots</url>
         </repository>
+        <repository>
+            <id>minebench-repo</id>
+            <url>http://repo.minebench.de/</url>
+        </repository>
     </repositories>
 
     <dependencies>
         <dependency>
             <groupId>net.md-5</groupId>
             <artifactId>bungeecord-api</artifactId>
-            <version>1.9-SNAPSHOT</version>
+            <version>1.11-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>de.themoep</groupId>
+            <artifactId>bungeeplugin</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 
@@ -56,13 +67,39 @@
         </profile>
     </profiles>
 
+
     <build>
         <finalName>${project.name}</finalName>
-        <resources>
-            <resource>
-                <filtering>true</filtering>
-                <directory>${project.basedir}/src/main/resources</directory>
-            </resource>
-        </resources>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.5.1</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>2.4.3</version>
+                <configuration>
+                    <relocations>
+                        <relocation>
+                            <pattern>de.themoep.bungeeplugin</pattern>
+                            <shadedPattern>de.themoep.KickInfo.bungee</shadedPattern>
+                        </relocation>
+                    </relocations>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
     </build>
 </project>

@@ -2,3 +2,9 @@ name: KickInfo
 main: de.themoep.KickInfo.bungee.KickInfo
 version: '${minecraft.plugin.version}'
 author: Phoenix616
+commands:
+  kickinfo:
+    description: Main plugin command
+    usage: 'Usage: /<command> reload'
+    permission: kickinfo.command
+    permission-message: You don't have the permission <permission>

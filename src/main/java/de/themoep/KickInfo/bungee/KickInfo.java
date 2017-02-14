@@ -1,21 +1,21 @@
 package de.themoep.KickInfo.bungee;
 
-import net.md_5.bungee.api.ChatColor;
+import de.themoep.bungeeplugin.BungeePlugin;
 import net.md_5.bungee.api.Title;
-import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.event.ServerKickEvent;
 import net.md_5.bungee.api.plugin.Listener;
-import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.event.EventHandler;
 
 import java.util.List;
 import java.util.logging.Level;
 
-/**
+/*
  * KickInfo is licensed under the Nietzsche Public License v0.6
  *
- * Copyright 2016 Max Lee (https://github.com/Phoenix616/)
+ * Copyright 2017 Max Lee (https://github.com/Phoenix616/)
  *
  * Copyright, like God, is dead.  Let its corpse serve only to guard against its
  * resurrection.  You may do anything with this work that copyright law would
@@ -36,28 +36,35 @@ import java.util.logging.Level;
  *
  * No warranty is implied by distribution under the terms of this license.
  */
-public class KickInfo extends Plugin implements Listener {
+public class KickInfo extends BungeePlugin implements Listener {
 
     public void onEnable() {
         getProxy().getPluginManager().registerListener(this, this);
+        registerCommand("kickinfo", KickInfoCommand.class);
     }
 
     @EventHandler
     public void onServerKick(ServerKickEvent event) {
         getLogger().log(Level.INFO, event.getPlayer().getName() + " was kicked from " + event.getKickedFrom().getName() + ": " + event.getKickReason());
-        List<String> priority = event.getPlayer().getPendingConnection().getListener().getServerPriority();
-        if(!priority.contains(event.getKickedFrom().getName())) {
-            event.getPlayer().sendMessage(ChatColor.GOLD + "Du wurdest von " + event.getKickedFrom().getName() + " gekickt! Grund: " + event.getKickReason());
+        List<String> priorities = event.getPlayer().getPendingConnection().getListener().getServerPriority();
+        int fromIndex = priorities.indexOf(event.getKickedFrom().getName());
+        if(fromIndex >= priorities.size() - 1) {
+            event.getPlayer().disconnect(event.getKickReasonComponent());
+        } else {
+            ServerInfo target = getProxy().getServerInfo(fromIndex == -1 ? priorities.get(0) : priorities.get(fromIndex + 1));
+            event.setCancelServer(target);
+            event.setCancelled(true);
+            event.getPlayer().sendMessage(getMessage("chat-message", event.getKickedFrom().getName(), event.getKickReason()));
             Title title = getProxy().createTitle();
-            title.title(TextComponent.fromLegacyText(ChatColor.GOLD + "Auf Lobby gekickt!"));
-            title.subTitle(new ComponentBuilder("Grund: ").color(ChatColor.RED).append(event.getKickReason()).color(ChatColor.YELLOW).create());
+            title.title(getMessage("title.main", event.getKickedFrom().getName(), event.getKickReason()));
+            title.subTitle(getMessage("title.sub", event.getKickedFrom().getName(), event.getKickReason()));
             title.fadeIn(20).stay(100).fadeOut(20);
             event.getPlayer().sendTitle(title);
             getLogger().log(Level.INFO, "To fallback server");
-        } else if(priority.indexOf(event.getKickedFrom().getName()) == priority.size() - 1) {
-            event.getPlayer().disconnect(event.getKickReasonComponent());
-        } else {
-            getLogger().log(Level.INFO, "To another fallback server");
         }
+    }
+
+    private BaseComponent[] getMessage(String key, String server, String reason) {
+        return TextComponent.fromLegacyText(translate(getConfig().getString("messages." + key), "server", server, "reason", reason));
     }
 }
