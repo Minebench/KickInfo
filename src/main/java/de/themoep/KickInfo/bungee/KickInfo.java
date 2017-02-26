@@ -46,7 +46,7 @@ public class KickInfo extends BungeePlugin implements Listener {
     @EventHandler
     public void onServerKick(ServerKickEvent event) {
         getLogger().log(Level.INFO, event.getPlayer().getName() + " disconnected from " + event.getKickedFrom().getName() + ": " + event.getKickReason());
-        if (event.getKickReason().startsWith("[Proxy]")) {
+        if (event.getKickReason().contains("[Proxy]")) {
             return;
         }
         List<String> priorities = event.getPlayer().getPendingConnection().getListener().getServerPriority();
