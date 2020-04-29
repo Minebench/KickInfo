@@ -54,7 +54,7 @@ public class KickInfo extends BungeePlugin implements Listener {
         if(fromIndex >= priorities.size() - 1) {
             event.getPlayer().disconnect(event.getKickReasonComponent());
         } else {
-            ServerInfo target = getProxy().getServerInfo(fromIndex == -1 ? priorities.get(0) : priorities.get(fromIndex + 1));
+            ServerInfo target = getProxy().getServerInfo(fromIndex != 0 ? priorities.get(0) : priorities.get(fromIndex + 1));
             event.setCancelServer(target);
             event.setCancelled(true);
             event.getPlayer().sendMessage(getMessage("chat-message", event.getKickedFrom().getName(), event.getKickReason()));
