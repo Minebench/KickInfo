@@ -4,12 +4,16 @@ import de.themoep.bungeeplugin.BungeePlugin;
 import net.md_5.bungee.api.Title;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.config.ServerInfo;
+import net.md_5.bungee.api.event.PlayerDisconnectEvent;
 import net.md_5.bungee.api.event.ServerKickEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.event.EventHandler;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.logging.Level;
 
 /*
@@ -38,6 +42,8 @@ import java.util.logging.Level;
  */
 public class KickInfo extends BungeePlugin implements Listener {
 
+    private Map<UUID, Integer> kickCounts = new HashMap<>();
+
     public void onEnable() {
         getProxy().getPluginManager().registerListener(this, this);
         registerCommand("kickinfo", KickInfoCommand.class);
@@ -50,6 +56,11 @@ public class KickInfo extends BungeePlugin implements Listener {
             return;
         }
         List<String> priorities = event.getPlayer().getPendingConnection().getListener().getServerPriority();
+        int kickCount = kickCounts.getOrDefault(event.getPlayer().getUniqueId(), 0);
+        if (kickCount >= priorities.size()) {
+            return;
+        }
+        kickCounts.put(event.getPlayer().getUniqueId(), kickCount + 1);
         int fromIndex = priorities.indexOf(event.getKickedFrom().getName());
         if(fromIndex >= priorities.size() - 1) {
             event.getPlayer().disconnect(event.getKickReasonComponent());
@@ -65,6 +76,11 @@ public class KickInfo extends BungeePlugin implements Listener {
             event.getPlayer().sendTitle(title);
             getLogger().log(Level.INFO, "To fallback server");
         }
+    }
+
+    @EventHandler
+    public void onPlayerDisconnect(PlayerDisconnectEvent event) {
+        kickCounts.remove(event.getPlayer().getUniqueId());
     }
 
     private BaseComponent[] getMessage(String key, String server, String reason) {
