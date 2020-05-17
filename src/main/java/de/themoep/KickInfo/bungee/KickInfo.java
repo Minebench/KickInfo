@@ -53,29 +53,27 @@ public class KickInfo extends BungeePlugin implements Listener {
     public void onServerKick(ServerKickEvent event) {
         getLogger().log(Level.INFO, event.getPlayer().getName() + " disconnected from " + event.getKickedFrom().getName() + ": " + event.getKickReason());
         if (event.getKickReason().contains("[Proxy]")) {
+            event.getPlayer().disconnect(event.getKickReasonComponent());
             return;
         }
         List<String> priorities = event.getPlayer().getPendingConnection().getListener().getServerPriority();
         int kickCount = kickCounts.getOrDefault(event.getPlayer().getUniqueId(), 0);
         if (kickCount >= priorities.size()) {
+            event.getPlayer().disconnect(event.getKickReasonComponent());
             return;
         }
         kickCounts.put(event.getPlayer().getUniqueId(), kickCount + 1);
         int fromIndex = priorities.indexOf(event.getKickedFrom().getName());
-        if(fromIndex >= priorities.size() - 1) {
-            event.getPlayer().disconnect(event.getKickReasonComponent());
-        } else {
-            ServerInfo target = getProxy().getServerInfo(fromIndex != 0 ? priorities.get(0) : priorities.get(fromIndex + 1));
-            event.setCancelServer(target);
-            event.setCancelled(true);
-            event.getPlayer().sendMessage(getMessage("chat-message", event.getKickedFrom().getName(), event.getKickReason()));
-            Title title = getProxy().createTitle();
-            title.title(getMessage("title.main", event.getKickedFrom().getName(), event.getKickReason()));
-            title.subTitle(getMessage("title.sub", event.getKickedFrom().getName(), event.getKickReason()));
-            title.fadeIn(20).stay(100).fadeOut(20);
-            event.getPlayer().sendTitle(title);
-            getLogger().log(Level.INFO, "To fallback server");
-        }
+        ServerInfo target = getProxy().getServerInfo(fromIndex >= priorities.size() - 1 ? priorities.get(0) : priorities.get(fromIndex + 1));
+        event.setCancelServer(target);
+        event.setCancelled(true);
+        event.getPlayer().sendMessage(getMessage("chat-message", event.getKickedFrom().getName(), event.getKickReason()));
+        Title title = getProxy().createTitle();
+        title.title(getMessage("title.main", event.getKickedFrom().getName(), event.getKickReason()));
+        title.subTitle(getMessage("title.sub", event.getKickedFrom().getName(), event.getKickReason()));
+        title.fadeIn(20).stay(100).fadeOut(20);
+        event.getPlayer().sendTitle(title);
+        getLogger().log(Level.INFO, "To fallback server");
     }
 
     @EventHandler
