@@ -1,46 +1,40 @@
 package de.themoep.KickInfo.bungee;
 
-import de.themoep.bungeeplugin.BungeePlugin;
+/*
+ * KickInfo
+ * Copyright (C) 2020. Max Lee aka Phoenix616 (mail@moep.tv)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 import de.themoep.bungeeplugin.PluginCommand;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 
 import java.io.IOException;
 
-/*
- * KickInfo is licensed under the Nietzsche Public License v0.6
- *
- * Copyright 2017 Max Lee (https://github.com/Phoenix616/)
- *
- * Copyright, like God, is dead.  Let its corpse serve only to guard against its
- * resurrection.  You may do anything with this work that copyright law would
- * normally restrict so long as you retain the above notice(s), this license, and
- * the following misquote and disclaimer of warranty with all redistributed
- * copies, modified or verbatim.  You may also replace this license with the Open
- * Works License, available at the http://owl.apotheon.org website.
- *
- *    Copyright is dead.  Copyright remains dead, and we have killed it.  How
- *    shall we comfort ourselves, the murderers of all murderers?  What was
- *    holiest and mightiest of all that the world of censorship has yet owned has
- *    bled to death under our knives: who will wipe this blood off us?  What
- *    water is there for us to clean ourselves?  What festivals of atonement,
- *    what sacred games shall we have to invent?  Is not the greatness of this
- *    deed too great for us?  Must we ourselves not become authors simply to
- *    appear worthy of it?
- *                                     - apologies to Friedrich Wilhelm Nietzsche
- *
- * No warranty is implied by distribution under the terms of this license.
- */
-public class KickInfoCommand extends PluginCommand {
-    public KickInfoCommand(BungeePlugin plugin, String name, String permission, String permissionMessage, String description, String usage, String... aliases) {
-        super(plugin, name, permission, permissionMessage, description, usage, aliases);
+public class KickInfoCommand extends PluginCommand<KickInfo> {
+
+    public KickInfoCommand(KickInfo plugin) {
+        super(plugin, "kickinfo");
     }
 
     @Override
     protected boolean run(CommandSender sender, String[] args) {
         if (args.length > 0 && "reload".equalsIgnoreCase(args[0])) {
             try {
-                plugin.getConfig().loadConfig();
+                plugin.loadConfig();
                 sender.sendMessage(ChatColor.GREEN + "Plugin reloaded.");
             } catch (IOException e) {
                 sender.sendMessage(ChatColor.RED + "Error while reloading! " + e.getMessage());

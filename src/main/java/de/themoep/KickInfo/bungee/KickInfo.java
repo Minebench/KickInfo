@@ -1,6 +1,28 @@
 package de.themoep.KickInfo.bungee;
 
+/*
+ * KickInfo
+ * Copyright (C) 2020. Max Lee aka Phoenix616 (mail@moep.tv)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 import de.themoep.bungeeplugin.BungeePlugin;
+import de.themoep.minedown.MineDown;
+import de.themoep.minedown.MineDownParser;
+import de.themoep.utils.lang.bungee.LanguageManager;
+import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.Title;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.config.ServerInfo;
@@ -10,43 +32,34 @@ import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.event.EventHandler;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
 
-/*
- * KickInfo is licensed under the Nietzsche Public License v0.6
- *
- * Copyright 2017 Max Lee (https://github.com/Phoenix616/)
- *
- * Copyright, like God, is dead.  Let its corpse serve only to guard against its
- * resurrection.  You may do anything with this work that copyright law would
- * normally restrict so long as you retain the above notice(s), this license, and
- * the following misquote and disclaimer of warranty with all redistributed
- * copies, modified or verbatim.  You may also replace this license with the Open
- * Works License, available at the http://owl.apotheon.org website.
- *
- *    Copyright is dead.  Copyright remains dead, and we have killed it.  How
- *    shall we comfort ourselves, the murderers of all murderers?  What was
- *    holiest and mightiest of all that the world of censorship has yet owned has
- *    bled to death under our knives: who will wipe this blood off us?  What
- *    water is there for us to clean ourselves?  What festivals of atonement,
- *    what sacred games shall we have to invent?  Is not the greatness of this
- *    deed too great for us?  Must we ourselves not become authors simply to
- *    appear worthy of it?
- *                                     - apologies to Friedrich Wilhelm Nietzsche
- *
- * No warranty is implied by distribution under the terms of this license.
- */
 public class KickInfo extends BungeePlugin implements Listener {
 
     private Map<UUID, Integer> kickCounts = new HashMap<>();
 
+    private LanguageManager lang;
+
     public void onEnable() {
+        try {
+            loadConfig();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return;
+        }
         getProxy().getPluginManager().registerListener(this, this);
-        registerCommand("kickinfo", KickInfoCommand.class);
+        getProxy().getPluginManager().registerCommand(this, new KickInfoCommand(this));
+    }
+
+    public void loadConfig() throws IOException {
+        getConfig().loadConfig();
+        lang = new LanguageManager(this, getConfig().getString("default-lang"));
+        lang.loadConfigs();
     }
 
     @EventHandler
@@ -67,10 +80,16 @@ public class KickInfo extends BungeePlugin implements Listener {
         ServerInfo target = getProxy().getServerInfo(fromIndex >= priorities.size() - 1 ? priorities.get(0) : priorities.get(fromIndex + 1));
         event.setCancelServer(target);
         event.setCancelled(true);
-        event.getPlayer().sendMessage(getMessage("chat-message", event.getKickedFrom().getName(), event.getKickReason()));
+
+        String[] replacements = {
+                "server", event.getKickedFrom().getName(),
+                "target", target.getName(),
+                "reason", event.getKickReason()
+        };
+        event.getPlayer().sendMessage(getMessage(event.getPlayer(),"chat-message", replacements));
         Title title = getProxy().createTitle();
-        title.title(getMessage("title.main", event.getKickedFrom().getName(), event.getKickReason()));
-        title.subTitle(getMessage("title.sub", event.getKickedFrom().getName(), event.getKickReason()));
+        title.title(getMessage(event.getPlayer(), "title.main", replacements));
+        title.subTitle(getMessage(event.getPlayer(), "title.sub", replacements));
         title.fadeIn(20).stay(100).fadeOut(20);
         event.getPlayer().sendTitle(title);
         getLogger().log(Level.INFO, "To fallback server");
@@ -81,7 +100,7 @@ public class KickInfo extends BungeePlugin implements Listener {
         kickCounts.remove(event.getPlayer().getUniqueId());
     }
 
-    private BaseComponent[] getMessage(String key, String server, String reason) {
-        return TextComponent.fromLegacyText(translate(getConfig().getString("messages." + key), "server", server, "reason", reason));
+    private BaseComponent[] getMessage(CommandSender sender, String key, String... replacements) {
+        return MineDown.parse(lang.getConfig(sender).get(key), replacements);
     }
 }

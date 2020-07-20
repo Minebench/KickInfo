@@ -1,0 +1,4 @@
+chat-message: "&6Du wurdest von %server% gekickt! Grund: %reason%"
+title:
+  main: "&6Auf %target% gekickt!"
+  sub: "&cGrund: &e%reason%"
