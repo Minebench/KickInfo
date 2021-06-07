@@ -64,20 +64,27 @@ public class KickInfo extends BungeePlugin implements Listener {
 
     @EventHandler
     public void onServerKick(ServerKickEvent event) {
+        if (event.isCancelled()) {
+            return;
+        }
         getLogger().log(Level.INFO, event.getPlayer().getName() + " disconnected from " + event.getKickedFrom().getName() + ": " + event.getKickReason());
         if (event.getKickReason().contains("[Proxy]")) {
-            event.getPlayer().disconnect(event.getKickReasonComponent());
             return;
         }
         List<String> priorities = event.getPlayer().getPendingConnection().getListener().getServerPriority();
         int kickCount = kickCounts.getOrDefault(event.getPlayer().getUniqueId(), 0);
         if (kickCount >= priorities.size()) {
-            event.getPlayer().disconnect(event.getKickReasonComponent());
             return;
         }
         kickCounts.put(event.getPlayer().getUniqueId(), kickCount + 1);
-        int fromIndex = priorities.indexOf(event.getKickedFrom().getName());
-        ServerInfo target = getProxy().getServerInfo(fromIndex >= priorities.size() - 1 ? priorities.get(0) : priorities.get(fromIndex + 1));
+        ServerInfo target = getProxy().getServerInfo(priorities.get(kickCount));
+        if (target == event.getKickedFrom()) {
+            if (kickCount + 1 < priorities.size()) {
+                target = getProxy().getServerInfo(priorities.get(kickCount + 1));
+            } else {
+                return;
+            }
+        }
         event.setCancelServer(target);
         event.setCancelled(true);
 
