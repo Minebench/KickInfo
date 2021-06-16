@@ -20,7 +20,6 @@ package de.themoep.KickInfo.bungee;
 
 import de.themoep.bungeeplugin.BungeePlugin;
 import de.themoep.minedown.MineDown;
-import de.themoep.minedown.MineDownParser;
 import de.themoep.utils.lang.bungee.LanguageManager;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.Title;
@@ -29,7 +28,6 @@ import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.event.PlayerDisconnectEvent;
 import net.md_5.bungee.api.event.ServerKickEvent;
 import net.md_5.bungee.api.plugin.Listener;
-import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.event.EventHandler;
 
 import java.io.IOException;
@@ -44,6 +42,7 @@ public class KickInfo extends BungeePlugin implements Listener {
     private Map<UUID, Integer> kickCounts = new HashMap<>();
 
     private LanguageManager lang;
+    private boolean debug = true;
 
     public void onEnable() {
         try {
@@ -58,6 +57,8 @@ public class KickInfo extends BungeePlugin implements Listener {
 
     public void loadConfig() throws IOException {
         getConfig().loadConfig();
+        debug = getConfig().getBoolean("debug", true);
+        logDebug("Debugging is enabled");
         lang = new LanguageManager(this, getConfig().getString("default-lang"));
         lang.loadConfigs();
     }
@@ -65,15 +66,18 @@ public class KickInfo extends BungeePlugin implements Listener {
     @EventHandler
     public void onServerKick(ServerKickEvent event) {
         if (event.isCancelled()) {
+            logDebug("Kick of " + event.getPlayer().getName() + " from " + event.getKickedFrom().getName() + " for " + event.getKickReason() + " was already cancelled?");
             return;
         }
         getLogger().log(Level.INFO, event.getPlayer().getName() + " disconnected from " + event.getKickedFrom().getName() + ": " + event.getKickReason());
         if (event.getKickReason().contains("[Proxy]")) {
+            logDebug("Kick reason contains [Proxy], disconnecting.");
             return;
         }
         List<String> priorities = event.getPlayer().getPendingConnection().getListener().getServerPriority();
         int kickCount = kickCounts.getOrDefault(event.getPlayer().getUniqueId(), 0);
         if (kickCount >= priorities.size()) {
+            logDebug("User was kicked " + kickCount + " times already and we only have " + priorities.size() + " available 'priorities' servers, disconnecting.");
             return;
         }
         kickCounts.put(event.getPlayer().getUniqueId(), kickCount + 1);
@@ -82,6 +86,7 @@ public class KickInfo extends BungeePlugin implements Listener {
             if (kickCount + 1 < priorities.size()) {
                 target = getProxy().getServerInfo(priorities.get(kickCount + 1));
             } else {
+                logDebug("Target server equals origin server and there is no more servers left after kicking player " + kickCount + " times, disconnecting.");
                 return;
             }
         }
@@ -99,7 +104,7 @@ public class KickInfo extends BungeePlugin implements Listener {
         title.subTitle(getMessage(event.getPlayer(), "title.sub", replacements));
         title.fadeIn(20).stay(100).fadeOut(20);
         event.getPlayer().sendTitle(title);
-        getLogger().log(Level.INFO, "To fallback server");
+        getLogger().log(Level.INFO, "To fallback server " + target.getName());
     }
 
     @EventHandler
@@ -109,5 +114,11 @@ public class KickInfo extends BungeePlugin implements Listener {
 
     private BaseComponent[] getMessage(CommandSender sender, String key, String... replacements) {
         return MineDown.parse(lang.getConfig(sender).get(key), replacements);
+    }
+
+    private void logDebug(String message) {
+        if (debug) {
+            getLogger().info("[DEBUG] " + message);
+        }
     }
 }
