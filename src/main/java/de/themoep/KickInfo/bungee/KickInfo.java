@@ -27,6 +27,7 @@ import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.event.PlayerDisconnectEvent;
 import net.md_5.bungee.api.event.ServerKickEvent;
+import net.md_5.bungee.api.event.ServerSwitchEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
 
@@ -80,7 +81,6 @@ public class KickInfo extends BungeePlugin implements Listener {
             logDebug("User was kicked " + kickCount + " times already and we only have " + priorities.size() + " available 'priorities' servers, disconnecting.");
             return;
         }
-        kickCounts.put(event.getPlayer().getUniqueId(), kickCount + 1);
         ServerInfo target = getProxy().getServerInfo(priorities.get(kickCount));
         if (target == event.getKickedFrom()) {
             if (kickCount + 1 < priorities.size()) {
@@ -90,6 +90,7 @@ public class KickInfo extends BungeePlugin implements Listener {
                 return;
             }
         }
+        kickCounts.put(event.getPlayer().getUniqueId(), kickCount + 1);
         event.setCancelServer(target);
         event.setCancelled(true);
 
@@ -105,6 +106,11 @@ public class KickInfo extends BungeePlugin implements Listener {
         title.fadeIn(20).stay(100).fadeOut(20);
         event.getPlayer().sendTitle(title);
         getLogger().log(Level.INFO, "To fallback server " + target.getName());
+    }
+
+    @EventHandler
+    public void onServerSwitched(ServerSwitchEvent event) {
+        kickCounts.remove(event.getPlayer().getUniqueId());
     }
 
     @EventHandler
